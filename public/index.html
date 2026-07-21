@@ -324,7 +324,7 @@
   </div>
 
   <p class="helper-text" id="adminHint" style="display:none;">
-    Admin mode is a convenience gate, not real security &mdash; anyone viewing this page's source can see the check. Links you add are saved to <strong>this browser only</strong> (localStorage). To make additions visible to everyone, use "Export list", then paste that JSON into the <code>DEFAULT_LINKS</code> array in this file and redeploy.
+    Changes here save straight to the shared list &mdash; anyone who opens this page sees your addition, edit, or deletion immediately. The admin passcode is checked on the server, never stored in this page's code.
   </p>
 </main>
 
@@ -338,7 +338,7 @@
   <div class="modal">
     <button class="modal-close" id="modalClose" type="button">&times;</button>
     <h3 id="modalTitle">Add a dashboard</h3>
-    <div class="modal-sub">It'll appear on the board for everyone who opens this page in this browser.</div>
+    <div class="modal-sub">It'll appear on the board for everyone who opens this page.</div>
 
     <div class="field">
       <label for="fTitle">Name</label>
@@ -380,56 +380,14 @@
   </div>
 </div>
 
+
 <script>
 /* ===================================================================
-   BROADWAY STORE OPS — COMMAND CENTER
-   Single-file static dashboard. No backend required.
-
-   HOW LINKS PERSIST
-   - DEFAULT_LINKS below ships with the file and is what every visitor
-     sees on first load, in every browser.
-   - When someone in Admin Mode adds/edits/deletes a link, the FULL
-     resulting list is saved to localStorage in *their own browser only*.
-   - To make an admin's changes visible to every teammate, use
-     "Export list (JSON)" in admin mode, then paste the exported array
-     over DEFAULT_LINKS below and redeploy this file.
-   - There is no server, so two admins editing in two different
-     browsers will not see each other's changes automatically.
-
-   ADMIN PASSCODE
-   - Change ADMIN_PASSCODE below before you deploy this for real use.
-     This is a convenience gate only — it is NOT secure, since anyone
-     can view this file's source and read the passcode.
+   BROADWAY COMMAND CENTER — frontend
+   Talks to the /api/links endpoints on this same server. The server
+   is the single source of truth (backed by links.json in GitHub),
+   so every visitor always sees the current shared list.
 =================================================================== */
-
-const ADMIN_PASSCODE = "broadway2026";
-
-const DEFAULT_LINKS = [
-  {
-    id: "incentive",
-    title: "Incentive",
-    url: "https://storeops.broadwaylive.in/",
-    description: "Store-level staff incentive and variable pay tracking.",
-    color: "amber",
-    locked: true
-  },
-  {
-    id: "stock-finder",
-    title: "Stock Finder",
-    url: "https://stock-finder-0fm2.onrender.com/",
-    description: "Barcode-based inventory lookup across Hyderabad, Delhi & Pune.",
-    color: "sky",
-    locked: true
-  },
-  {
-    id: "promo-dashboard",
-    title: "Promo Dashboard",
-    url: "https://promo-hub.onrender.com/",
-    description: "Live view of running promotions and offer performance.",
-    color: "pink",
-    locked: true
-  }
-];
 
 const COLOR_MAP = {
   amber: "#F5A61F",
@@ -440,36 +398,59 @@ const COLOR_MAP = {
   lavender: "#B091C3"
 };
 const COLOR_ORDER = ["amber","sky","pink","mint","yellow","lavender"];
-const STORAGE_KEY = "broadway_dashboard_links_v1";
-const ADMIN_KEY = "broadway_dashboard_admin_v1";
 
-let links = loadLinks();
+const DEFAULT_LINKS = [
+  { id:"incentive", title:"Incentive", url:"https://storeops.broadwaylive.in/", description:"Store-level staff incentive and variable pay tracking.", color:"amber", locked:true },
+  { id:"stock-finder", title:"Stock Finder", url:"https://stock-finder-0fm2.onrender.com/", description:"Barcode-based inventory lookup across Hyderabad, Delhi & Pune.", color:"sky", locked:true },
+  { id:"promo-dashboard", title:"Promo Dashboard", url:"https://promo-hub.onrender.com/", description:"Live view of running promotions and offer performance.", color:"pink", locked:true }
+];
+
+let links = [];
 let editingId = null;
+let adminPasscode = null; // kept in memory only for this tab; never persisted
 
-function loadLinks(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(!raw) return DEFAULT_LINKS.slice();
-    const parsed = JSON.parse(raw);
-    if(Array.isArray(parsed) && parsed.length) return parsed;
-    return DEFAULT_LINKS.slice();
-  }catch(e){
-    console.error("Could not read saved links, falling back to defaults.", e);
-    return DEFAULT_LINKS.slice();
-  }
+/* ---------------- API helpers ---------------- */
+async function apiGetLinks(){
+  const res = await fetch("/api/links");
+  const data = await res.json();
+  if(!res.ok) throw new Error(data.error || "Couldn't load the link list.");
+  return data.links;
 }
 
-function saveLinks(){
-  try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
-  }catch(e){
-    console.error("Could not save links to this browser.", e);
-    alert("Couldn't save — your browser may be blocking local storage (private/incognito mode can do this).");
-  }
+async function apiVerifyPasscode(passcode){
+  const res = await fetch("/api/admin/verify", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ passcode })
+  });
+  return res.ok;
 }
 
+async function apiWrite(url, method, body){
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "x-admin-passcode": adminPasscode || ""
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  const data = await res.json().catch(()=> ({}));
+  if(!res.ok){
+    if(res.status === 401){ setAdmin(false); adminPasscode = null; }
+    throw new Error(data.error || `Request failed (${res.status})`);
+  }
+  return data;
+}
+
+/* ---------------- Rendering ---------------- */
 function hostFromUrl(u){
   try{ return new URL(u).host; }catch(e){ return u; }
+}
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[m]));
 }
 
 function render(){
@@ -480,7 +461,6 @@ function render(){
     const card = document.createElement("div");
     card.className = "card";
     card.style.setProperty("--accent", COLOR_MAP[link.color] || COLOR_MAP.amber);
-
     card.innerHTML = `
       <div class="stub"></div>
       <div class="card-top">
@@ -490,7 +470,7 @@ function render(){
       <p class="desc">${escapeHtml(link.description || "")}</p>
       <div class="meta"><span class="dot-accent"></span>${escapeHtml(hostFromUrl(link.url))}</div>
       <div class="card-actions">
-        <a class="btn btn-primary" href="${escapeAttr(link.url)}" target="_blank" rel="noopener noreferrer">Open dashboard ↗</a>
+        <a class="btn btn-primary" href="${escapeHtml(link.url)}" target="_blank" rel="noopener noreferrer">Open dashboard ↗</a>
         <div class="admin-row">
           <button class="btn btn-ghost" data-edit="${link.id}" type="button">Edit</button>
           ${link.locked ? '' : `<button class="btn btn-ghost btn-danger" data-delete="${link.id}" type="button">Delete</button>`}
@@ -500,7 +480,6 @@ function render(){
     grid.appendChild(card);
   });
 
-  // Add-new tile at the end
   const addTile = document.createElement("div");
   addTile.className = "add-tile";
   addTile.id = "openAddTile";
@@ -509,7 +488,6 @@ function render(){
 
   document.getElementById("countPill").textContent = `${links.length} live`;
 
-  // wire up edit/delete buttons
   grid.querySelectorAll("[data-edit]").forEach(btn=>{
     btn.addEventListener("click", ()=> openModal(btn.getAttribute("data-edit")));
   });
@@ -519,20 +497,25 @@ function render(){
   document.getElementById("openAddTile").addEventListener("click", ()=> openModal(null));
 }
 
-function escapeHtml(str){
-  return String(str).replace(/[&<>"']/g, m=>({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-  }[m]));
+async function refreshFromServer(){
+  try{
+    links = await apiGetLinks();
+    render();
+  }catch(e){
+    document.getElementById("grid").innerHTML =
+      `<p style="color:#b23; font-weight:600;">Couldn't load the dashboard list: ${escapeHtml(e.message)}</p>`;
+  }
 }
-function escapeAttr(str){ return escapeHtml(str); }
 
-function deleteLink(id){
+async function deleteLink(id){
   const link = links.find(l=>l.id===id);
   if(!link) return;
-  if(!confirm(`Remove "${link.title}" from the board? This only affects this browser.`)) return;
-  links = links.filter(l=>l.id!==id);
-  saveLinks();
-  render();
+  if(!confirm(`Remove "${link.title}" from the board for everyone?`)) return;
+  try{
+    const data = await apiWrite(`/api/links/${encodeURIComponent(id)}`, "DELETE");
+    links = data.links;
+    render();
+  }catch(e){ alert(e.message); }
 }
 
 /* ---------------- Modal (add/edit) ---------------- */
@@ -580,34 +563,33 @@ document.getElementById("modalClose").addEventListener("click", closeModal);
 document.getElementById("cancelBtn").addEventListener("click", closeModal);
 overlay.addEventListener("click", (e)=>{ if(e.target===overlay) closeModal(); });
 
-document.getElementById("saveBtn").addEventListener("click", ()=>{
+document.getElementById("saveBtn").addEventListener("click", async ()=>{
   const title = document.getElementById("fTitle").value.trim();
   const url = document.getElementById("fUrl").value.trim();
   const description = document.getElementById("fDesc").value.trim();
   const selectedSwatch = swatchesEl.querySelector(".swatch.selected");
   const color = selectedSwatch ? selectedSwatch.dataset.color : "amber";
 
-  if(!title || !url){
-    alert("Name and link are both required.");
-    return;
-  }
-  try{ new URL(url); }
-  catch(e){ alert("That link doesn't look like a valid URL. Include https://"); return; }
+  if(!title || !url){ alert("Name and link are both required."); return; }
+  try{ new URL(url); } catch(e){ alert("That link doesn't look like a valid URL. Include https://"); return; }
 
-  if(editingId){
-    const idx = links.findIndex(l=>l.id===editingId);
-    if(idx>-1){
-      links[idx] = { ...links[idx], title, url, description, color };
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.disabled = true; saveBtn.textContent = "Saving…";
+  try{
+    let data;
+    if(editingId){
+      data = await apiWrite(`/api/links/${encodeURIComponent(editingId)}`, "PUT", { title, url, description, color });
+    } else {
+      data = await apiWrite("/api/links", "POST", { title, url, description, color });
     }
-  } else {
-    const id = title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"") || `link-${Date.now()}`;
-    let uniqueId = id, n=2;
-    while(links.some(l=>l.id===uniqueId)){ uniqueId = `${id}-${n++}`; }
-    links.push({ id: uniqueId, title, url, description, color, locked:false });
+    links = data.links;
+    render();
+    closeModal();
+  }catch(e){
+    alert(e.message);
+  }finally{
+    saveBtn.disabled = false; saveBtn.textContent = "Save";
   }
-  saveLinks();
-  render();
-  closeModal();
 });
 
 /* ---------------- Admin toggle ---------------- */
@@ -617,27 +599,24 @@ function setAdmin(on){
   document.body.classList.toggle("admin-on", on);
   adminToggle.classList.toggle("on", on);
   document.getElementById("adminHint").style.display = on ? "block" : "none";
-  try{ sessionStorage.setItem(ADMIN_KEY, on ? "1" : "0"); }catch(e){}
 }
 
-adminToggle.addEventListener("click", ()=>{
+adminToggle.addEventListener("click", async ()=>{
   const isOn = document.body.classList.contains("admin-on");
-  if(isOn){ setAdmin(false); return; }
+  if(isOn){ setAdmin(false); adminPasscode = null; return; }
   const attempt = prompt("Enter admin passcode:");
   if(attempt === null) return;
-  if(attempt === ADMIN_PASSCODE){ setAdmin(true); }
+  const ok = await apiVerifyPasscode(attempt);
+  if(ok){ adminPasscode = attempt; setAdmin(true); }
   else{ alert("That passcode didn't match."); }
 });
-
-// restore admin state for this tab session only
-if(sessionStorage.getItem(ADMIN_KEY) === "1"){ setAdmin(true); }
 
 /* ---------------- Export / Import / Reset ---------------- */
 document.getElementById("exportBtn").addEventListener("click", async ()=>{
   const json = JSON.stringify(links, null, 2);
   try{
     await navigator.clipboard.writeText(json);
-    alert("Copied the current list as JSON to your clipboard.");
+    alert("Copied the current shared list as JSON to your clipboard (handy as a backup).");
   }catch(e){
     prompt("Copy this JSON manually:", json);
   }
@@ -652,25 +631,32 @@ document.getElementById("importClose").addEventListener("click", ()=> importOver
 document.getElementById("importCancel").addEventListener("click", ()=> importOverlay.classList.remove("show"));
 importOverlay.addEventListener("click", (e)=>{ if(e.target===importOverlay) importOverlay.classList.remove("show"); });
 
-document.getElementById("importConfirm").addEventListener("click", ()=>{
+document.getElementById("importConfirm").addEventListener("click", async ()=>{
   const raw = document.getElementById("importText").value.trim();
+  let parsed;
   try{
-    const parsed = JSON.parse(raw);
+    parsed = JSON.parse(raw);
     if(!Array.isArray(parsed)) throw new Error("Not an array");
-    links = parsed;
-    saveLinks();
-    render();
-    importOverlay.classList.remove("show");
   }catch(e){
     alert("That didn't parse as a valid JSON array. Double-check and try again.");
+    return;
   }
+  if(!confirm("This replaces the shared list for everyone. Continue?")) return;
+  try{
+    const data = await apiWrite("/api/links", "PUT", { links: parsed });
+    links = data.links;
+    render();
+    importOverlay.classList.remove("show");
+  }catch(e){ alert(e.message); }
 });
 
-document.getElementById("resetBtn").addEventListener("click", ()=>{
-  if(!confirm("Restore the default dashboard list? Any links you added in this browser will be removed.")) return;
-  links = DEFAULT_LINKS.slice();
-  saveLinks();
-  render();
+document.getElementById("resetBtn").addEventListener("click", async ()=>{
+  if(!confirm("Restore the default dashboard list for everyone? Any added links will be removed for all visitors.")) return;
+  try{
+    const data = await apiWrite("/api/links", "PUT", { links: DEFAULT_LINKS });
+    links = data.links;
+    render();
+  }catch(e){ alert(e.message); }
 });
 
 /* ---------------- Curtain intro ---------------- */
@@ -682,7 +668,7 @@ window.addEventListener("load", ()=>{
   });
 });
 
-render();
+refreshFromServer();
 
 </script>
 </body>
