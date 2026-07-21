@@ -1,0 +1,34 @@
+[
+  {
+    "id": "incentive",
+    "title": "Incentive",
+    "url": "https://storeops.broadwaylive.in/",
+    "description": "Store-level staff incentive and variable pay tracking.",
+    "color": "amber",
+    "locked": true
+  },
+  {
+    "id": "stock-finder",
+    "title": "Stock Finder",
+    "url": "https://stock-finder-0fm2.onrender.com/",
+    "description": "Barcode-based inventory lookup across Hyderabad, Delhi & Pune.",
+    "color": "sky",
+    "locked": true
+  },
+  {
+    "id": "promo-dashboard",
+    "title": "Promo Dashboard",
+    "url": "https://promo-hub.onrender.com/",
+    "description": "Live view of running promotions and offer performance.",
+    "color": "pink",
+    "locked": true
+  },
+  {
+    "id": "test3",
+    "title": "Test3",
+    "url": "https://style-grouper-2wfvw7ptdi4scftx6wr3rg.streamlit.app/",
+    "description": "Style maps",
+    "color": "yellow",
+    "locked": false
+  }
+]
