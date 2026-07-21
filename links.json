@@ -22,13 +22,5 @@
     "description": "Live view of running promotions and offer performance.",
     "color": "pink",
     "locked": true
-  },
-  {
-    "id": "test3",
-    "title": "Test3",
-    "url": "https://style-grouper-2wfvw7ptdi4scftx6wr3rg.streamlit.app/",
-    "description": "Style maps",
-    "color": "yellow",
-    "locked": false
   }
 ]
