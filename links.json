@@ -22,5 +22,13 @@
     "description": "Live view of running promotions and offer performance.",
     "color": "pink",
     "locked": true
+  },
+  {
+    "id": "daily-vm-sync",
+    "title": "Daily VM sync",
+    "url": "https://criticalstock.vercel.app/",
+    "description": "Daily VM update for clothing brands",
+    "color": "mint",
+    "locked": false
   }
 ]
