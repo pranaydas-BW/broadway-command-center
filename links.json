@@ -5,7 +5,8 @@
     "url": "https://storeops.broadwaylive.in/",
     "description": "Store-level staff incentive and variable pay tracking.",
     "color": "amber",
-    "locked": true
+    "locked": true,
+    "section": "store"
   },
   {
     "id": "stock-finder",
@@ -13,7 +14,8 @@
     "url": "https://stock-finder-0fm2.onrender.com/",
     "description": "Barcode-based inventory lookup across Hyderabad, Delhi & Pune.",
     "color": "sky",
-    "locked": true
+    "locked": true,
+    "section": "store"
   },
   {
     "id": "promo-dashboard",
@@ -21,14 +23,43 @@
     "url": "https://promo-hub.onrender.com/",
     "description": "Live view of running promotions and offer performance.",
     "color": "pink",
-    "locked": true
+    "locked": true,
+    "section": "store"
   },
   {
     "id": "daily-vm-sync",
-    "title": "Daily VM sync",
+    "title": "Floor VM Dashboard",
     "url": "https://criticalstock.vercel.app/",
-    "description": "Daily VM update for clothing brands",
+    "description": "Visual merchandising and critical stock alerts by floor.",
     "color": "mint",
-    "locked": false
+    "locked": false,
+    "section": "store"
+  },
+  {
+    "id": "grn-tool",
+    "title": "GRN Tool",
+    "url": "https://broadway-grn-app.onrender.com/",
+    "description": "Goods received note entry and warehouse inbound tracking.",
+    "color": "lavender",
+    "locked": true,
+    "section": "warehouse"
+  },
+  {
+    "id": "rtv-tool",
+    "title": "RTV Tool",
+    "url": "https://rtv-desk.onrender.com/",
+    "description": "Return to vendor desk — log and track outbound returns.",
+    "color": "yellow",
+    "locked": true,
+    "section": "warehouse"
+  },
+  {
+    "id": "auto-grn",
+    "title": "Auto GRN Tool",
+    "url": "https://po-mailer.onrender.com/grn.html",
+    "description": "Automated GRN generation from PO data for central operations.",
+    "color": "amber",
+    "locked": true,
+    "section": "central"
   }
 ]
