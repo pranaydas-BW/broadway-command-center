@@ -3,181 +3,174 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Broadway &mdash; Command Center</title>
+<title>Broadway — Command Center</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --black:#000000;
-    --white:#ffffff;
-    --paper:#faf9f7;
+  :root {
+    --black: #000;
+    --white: #fff;
+    --paper: #faf9f7;
     --ink-70: rgba(0,0,0,.7);
     --ink-45: rgba(0,0,0,.45);
     --line: rgba(0,0,0,.12);
-    --lavender:#B091C3;
-    --pink:#EB92AA;
-    --sky:#75CFE7;
-    --amber:#F5A61F;
-    --mint:#B8E0CB;
-    --yellow:#F0E071;
+    --amber: #F5A61F;
+    --pink: #EB92AA;
+    --sky: #75CFE7;
+    --mint: #B8E0CB;
+    --yellow: #F0E071;
+    --lavender: #B091C3;
     --radius: 14px;
     --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.06);
   }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { background: var(--paper); color: var(--black); font-family: 'Montserrat', sans-serif; -webkit-font-smoothing: antialiased; min-height: 100vh; }
+  h1,h2,h3 { font-family: 'Archivo', sans-serif; font-weight: 900; letter-spacing: -0.01em; }
+  a { color: inherit; text-decoration: none; }
 
-  *{ box-sizing: border-box; }
-  html,body{ margin:0; padding:0; background:var(--paper); color:var(--black); font-family:'Montserrat',sans-serif; -webkit-font-smoothing:antialiased; }
-  h1,h2,h3,.display{ font-family:'Archivo',sans-serif; font-weight:900; letter-spacing:-0.01em; margin:0; }
-  a{ color:inherit; }
+  /* Curtain */
+  #curtain { position: fixed; inset: 0; z-index: 999; display: flex; pointer-events: none; }
+  #curtain .panel { flex: 1; background: var(--black); transition: transform 900ms cubic-bezier(.7,0,.25,1); }
+  #curtain.open .panel.left { transform: translateX(-100%); }
+  #curtain.open .panel.right { transform: translateX(100%); }
+  @media (prefers-reduced-motion: reduce) { #curtain { display: none; } }
 
-  /* ---------- Curtain ---------- */
-  #curtain{ position:fixed; inset:0; z-index:999; display:flex; pointer-events:none; }
-  #curtain .panel{ flex:1; background:var(--black); transition:transform 900ms cubic-bezier(.7,0,.25,1); }
-  #curtain .panel.left{ transform:translateX(0); }
-  #curtain .panel.right{ transform:translateX(0); }
-  #curtain.open .panel.left{ transform:translateX(-100%); }
-  #curtain.open .panel.right{ transform:translateX(100%); }
-  @media(prefers-reduced-motion:reduce){ #curtain,#curtain .panel{ transition:none !important; } #curtain{ display:none; } }
-
-  /* ---------- Header ---------- */
-  header.marquee{
-    background:var(--black); color:var(--white);
-    padding:28px clamp(20px,5vw,56px) 0;
-    position:relative; overflow:hidden;
+  /* Header */
+  header {
+    background: var(--black); color: var(--white);
+    padding: 24px clamp(20px,5vw,48px) 0;
   }
-  header.marquee .rainbow{
-    height:6px; margin-top:0;
-    background: repeating-linear-gradient(90deg,
-      var(--amber) 0 40px, var(--pink) 40px 80px,
-      var(--sky) 80px 120px, var(--mint) 120px 160px,
-      var(--yellow) 160px 200px, var(--lavender) 200px 240px);
+  .header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand-mark { width: 40px; height: 40px; background: var(--white); border-radius: 9px; display: flex; align-items: center; justify-content: center; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 18px; color: var(--black); flex-shrink: 0; }
+  .brand-name { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 20px; }
+  .brand-sub { font-size: 11px; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .08em; margin-top: 2px; }
+  .admin-toggle { display: flex; align-items: center; gap: 7px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); color: var(--white); padding: 9px 14px; border-radius: 999px; font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; transition: background 150ms; white-space: nowrap; }
+  .admin-toggle:hover { background: rgba(255,255,255,.16); }
+  .admin-toggle.on { background: var(--amber); border-color: var(--amber); color: var(--black); }
+  .admin-toggle .dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.4); flex-shrink: 0; }
+  .admin-toggle.on .dot { background: var(--black); }
+
+  .header-eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: rgba(255,255,255,.45); font-weight: 600; margin-top: 20px; }
+  .header-title { font-size: clamp(26px,4vw,42px); line-height: 1.05; margin-top: 10px; }
+  .header-sub { color: rgba(255,255,255,.55); font-size: 14px; margin-top: 8px; font-weight: 500; padding-bottom: 28px; }
+
+  .rainbow { height: 5px; background: repeating-linear-gradient(90deg, var(--amber) 0 40px, var(--pink) 40px 80px, var(--sky) 80px 120px, var(--mint) 120px 160px, var(--yellow) 160px 200px, var(--lavender) 200px 240px); }
+
+  /* ---- HOME: 3 section boxes ---- */
+  #home {
+    max-width: 860px; margin: 0 auto;
+    padding: clamp(28px,5vw,48px) clamp(16px,5vw,48px) 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
   }
-  .marquee-top{ display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
-  .brand-lockup{ display:flex; align-items:center; gap:14px; }
-  .brand-mark{
-    width:44px; height:44px; background:var(--white); border-radius:10px;
-    display:flex; align-items:center; justify-content:center;
-    font-family:'Archivo',sans-serif; font-weight:900; font-size:20px; color:var(--black);
+
+  .section-box {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 28px 24px 24px;
+    cursor: pointer;
+    display: flex; flex-direction: column; gap: 12px;
+    box-shadow: var(--shadow);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+    position: relative; overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
-  .brand-lockup .word{ font-family:'Archivo',sans-serif; font-weight:900; font-size:22px; letter-spacing:0.01em; }
-  .brand-lockup .sub{ font-family:'Montserrat',sans-serif; font-weight:500; font-size:12px; color:rgba(255,255,255,.55); letter-spacing:.08em; text-transform:uppercase; margin-top:2px; }
-  .eyebrow{ font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.5); font-weight:600; }
-  h1.title{ font-size:clamp(28px,4vw,44px); line-height:1.02; margin-top:12px; max-width:16ch; }
-  p.tagline{ color:rgba(255,255,255,.62); font-size:15px; max-width:46ch; margin-top:8px; font-weight:500; padding-bottom:24px; }
-
-  .admin-toggle{
-    display:flex; align-items:center; gap:8px;
-    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18);
-    color:var(--white); padding:10px 16px; border-radius:999px;
-    font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px;
-    cursor:pointer; transition:background 160ms ease, transform 160ms ease; white-space:nowrap;
+  .section-box::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 5px;
+    background: var(--accent);
   }
-  .admin-toggle:hover{ background:rgba(255,255,255,.16); }
-  .admin-toggle:active{ transform:scale(.97); }
-  .admin-toggle.on{ background:var(--amber); border-color:var(--amber); color:var(--black); }
-  .admin-toggle .dot{ width:7px; height:7px; border-radius:50%; background:rgba(255,255,255,.35); }
-  .admin-toggle.on .dot{ background:var(--black); }
+  .section-box:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,.1); }
+  .section-box:active { transform: scale(.98); }
 
-  /* ---------- Tabs ---------- */
-  .tab-bar{
-    background:var(--black);
-    padding:0 clamp(20px,5vw,56px);
-    display:flex; gap:0; border-bottom:none;
+  .box-emoji { font-size: 36px; line-height: 1; }
+  .box-name { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 22px; }
+  .box-desc { font-size: 13px; color: var(--ink-45); font-weight: 500; line-height: 1.5; flex: 1; }
+  .box-count { font-size: 12px; font-weight: 700; color: var(--ink-45); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; align-self: flex-start; }
+  .box-arrow { font-size: 20px; color: var(--ink-45); align-self: flex-end; margin-top: 4px; }
+
+  /* ---- SECTION VIEW ---- */
+  #section-view { display: none; max-width: 1000px; margin: 0 auto; padding: clamp(24px,5vw,48px) clamp(16px,5vw,48px) 80px; }
+  #section-view.active { display: block; }
+
+  .back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: 'Montserrat', sans-serif; font-weight: 600; font-size: 13px;
+    color: var(--ink-45); cursor: pointer; border: none; background: none;
+    padding: 0; margin-bottom: 24px;
+    transition: color 150ms;
   }
-  .tab-btn{
-    font-family:'Montserrat',sans-serif; font-weight:600; font-size:13px;
-    padding:14px 22px; cursor:pointer; border:none; background:transparent;
-    color:rgba(255,255,255,.45); border-bottom:3px solid transparent;
-    transition:color 150ms, border-color 150ms;
-    letter-spacing:.04em; text-transform:uppercase;
-  }
-  .tab-btn:hover{ color:rgba(255,255,255,.75); }
-  .tab-btn.active{ color:var(--white); border-bottom-color:var(--amber); }
+  .back-btn:hover { color: var(--black); }
 
-  /* ---------- Main ---------- */
-  main{ max-width:1080px; margin:0 auto; padding:clamp(28px,5vw,48px) clamp(20px,5vw,56px) 80px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+  .section-head h2 { font-size: 22px; }
+  .count-pill { font-size: 12px; font-weight: 700; color: var(--ink-45); border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
 
-  .section-panel{ display:none; }
-  .section-panel.active{ display:block; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px,1fr)); gap: 16px; }
 
-  .section-head{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:22px; gap:12px; flex-wrap:wrap; }
-  .section-head h2{ font-size:20px; }
-  .count-pill{ font-size:12px; font-weight:700; color:var(--ink-45); border:1px solid var(--line); border-radius:999px; padding:4px 10px; }
+  .card { position: relative; background: var(--white); border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 22px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; transition: transform 180ms ease, box-shadow 180ms ease; }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0,0,0,.06), 0 16px 32px rgba(0,0,0,.09); }
+  .card .stub { position: absolute; top: 0; left: 22px; right: 22px; height: 5px; border-radius: 0 0 4px 4px; background: var(--accent, var(--amber)); }
+  .card .stub::before, .card .stub::after { content: ""; position: absolute; top: -4px; width: 8px; height: 8px; border-radius: 50%; background: var(--paper); border: 1px solid var(--line); }
+  .card .stub::before { left: -4px; }
+  .card .stub::after { right: -4px; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: 6px; }
+  .card h3 { font-size: 18px; line-height: 1.15; }
+  .card p.desc { color: var(--ink-70); font-size: 13px; line-height: 1.5; flex: 1; }
+  .card .meta { font-size: 11px; color: var(--ink-45); font-weight: 600; display: flex; align-items: center; gap: 6px; word-break: break-all; }
+  .card .meta .dot-accent { width: 6px; height: 6px; border-radius: 50%; background: var(--accent, var(--amber)); flex-shrink: 0; }
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
 
-  .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:18px; }
+  .btn { display: inline-flex; align-items: center; gap: 6px; font-family: 'Montserrat', sans-serif; font-weight: 700; font-size: 13px; padding: 10px 16px; border-radius: 10px; border: none; cursor: pointer; text-decoration: none; transition: transform 140ms, filter 140ms; }
+  .btn:active { transform: scale(.97); }
+  .btn-primary { background: var(--black); color: var(--white); }
+  .btn-primary:hover { filter: brightness(1.3); }
+  .btn-ghost { background: transparent; color: var(--ink-70); border: 1px solid var(--line); padding: 9px 12px; }
+  .btn-ghost:hover { border-color: var(--black); color: var(--black); }
+  .btn-danger { color: #b23; }
+  .btn-danger:hover { border-color: #b23; color: #b23; }
 
-  .card{
-    position:relative; background:var(--white); border:1px solid var(--line);
-    border-radius:var(--radius); padding:22px 22px 20px;
-    box-shadow:var(--shadow); display:flex; flex-direction:column; gap:14px;
-    transition:transform 180ms ease, box-shadow 180ms ease;
-  }
-  .card:hover{ transform:translateY(-3px); box-shadow:0 4px 10px rgba(0,0,0,.06),0 16px 32px rgba(0,0,0,.09); }
-  .card .stub{ position:absolute; top:0; left:22px; right:22px; height:5px; border-radius:0 0 4px 4px; background:var(--accent,var(--amber)); }
-  .card .stub::before,.card .stub::after{ content:""; position:absolute; top:-4px; width:8px; height:8px; border-radius:50%; background:var(--paper); border:1px solid var(--line); }
-  .card .stub::before{ left:-4px; }
-  .card .stub::after{ right:-4px; }
-  .card-top{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; margin-top:6px; }
-  .card h3{ font-size:19px; line-height:1.15; }
-  .badge{ font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; background:var(--accent,var(--amber)); color:var(--black); padding:4px 9px; border-radius:999px; white-space:nowrap; }
-  .card p.desc{ color:var(--ink-70); font-size:13.5px; line-height:1.5; margin:0; flex:1; }
-  .card .meta{ font-size:11.5px; color:var(--ink-45); font-weight:600; display:flex; align-items:center; gap:6px; word-break:break-all; }
-  .card .meta .dot-accent{ width:6px; height:6px; border-radius:50%; background:var(--accent,var(--amber)); flex:none; }
-  .card-actions{ display:flex; gap:8px; margin-top:4px; flex-wrap:wrap; }
+  .admin-row { display: none; gap: 8px; }
+  body.admin-on .admin-row { display: flex; }
 
-  .btn{ display:inline-flex; align-items:center; gap:7px; font-family:'Montserrat',sans-serif; font-weight:700; font-size:13px; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; text-decoration:none; transition:transform 140ms ease, filter 140ms ease; }
-  .btn:active{ transform:scale(.97); }
-  .btn-primary{ background:var(--black); color:var(--white); }
-  .btn-primary:hover{ filter:brightness(1.3); }
-  .btn-ghost{ background:transparent; color:var(--ink-70); border:1px solid var(--line); padding:9px 12px; }
-  .btn-ghost:hover{ border-color:var(--black); color:var(--black); }
-  .btn-danger{ color:#b23; }
-  .btn-danger:hover{ border-color:#b23; color:#b23; }
+  .add-tile { display: none; align-items: center; justify-content: center; flex-direction: column; gap: 10px; border: 2px dashed var(--line); border-radius: var(--radius); min-height: 160px; cursor: pointer; color: var(--ink-45); font-weight: 700; font-size: 14px; background: transparent; transition: border-color 160ms, color 160ms; }
+  body.admin-on .add-tile { display: flex; }
+  .add-tile:hover { border-color: var(--black); color: var(--black); }
+  .add-tile .plus { font-size: 28px; font-family: 'Archivo', sans-serif; font-weight: 900; }
 
-  .admin-row{ display:none; gap:8px; }
-  body.admin-on .admin-row{ display:flex; }
+  .util-bar { display: none; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  body.admin-on .util-bar { display: flex; }
+  .helper-text { font-size: 12px; color: var(--ink-45); margin-top: 12px; line-height: 1.5; }
 
-  .add-tile{
-    display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px;
-    border:2px dashed var(--line); border-radius:var(--radius); min-height:180px; cursor:pointer;
-    color:var(--ink-45); font-weight:700; font-size:14px; background:transparent;
-    transition:border-color 160ms ease, color 160ms ease, background 160ms ease;
-  }
-  body.admin-on .add-tile{ display:flex; }
-  .add-tile:hover{ border-color:var(--black); color:var(--black); background:rgba(0,0,0,.02); }
-  .add-tile .plus{ font-size:30px; line-height:1; font-family:'Archivo',sans-serif; font-weight:800; }
+  /* Modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.5); backdrop-filter: blur(2px); display: none; align-items: center; justify-content: center; z-index: 500; padding: 20px; }
+  .overlay.show { display: flex; }
+  .modal { background: var(--white); border-radius: 16px; width: 100%; max-width: 420px; padding: 24px 24px 20px; box-shadow: 0 20px 60px rgba(0,0,0,.3); max-height: 90vh; overflow-y: auto; position: relative; }
+  .modal h3 { font-size: 18px; margin-bottom: 4px; }
+  .modal-sub { font-size: 12px; color: var(--ink-45); margin-bottom: 16px; font-weight: 600; }
+  .field { margin-bottom: 13px; }
+  .field label { display: block; font-size: 11px; font-weight: 700; margin-bottom: 5px; color: var(--ink-70); text-transform: uppercase; letter-spacing: .04em; }
+  .field input, .field textarea, .field select { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px; font-family: 'Montserrat', sans-serif; font-size: 14px; background: var(--paper); }
+  .field input:focus, .field textarea:focus, .field select:focus { outline: 2px solid var(--black); outline-offset: 1px; }
+  .field textarea { resize: vertical; min-height: 52px; }
+  .swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+  .swatch { width: 28px; height: 28px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; }
+  .swatch.selected { border-color: var(--black); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+  .modal-close { position: absolute; top: 14px; right: 14px; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--ink-45); }
 
-  .util-bar{ display:none; gap:10px; flex-wrap:wrap; margin-top:14px; }
-  body.admin-on .util-bar{ display:flex; }
+  footer { text-align: center; padding: 24px 20px 40px; font-size: 12px; color: var(--ink-45); font-weight: 600; }
+  footer .fine { margin-top: 4px; color: rgba(0,0,0,.28); font-weight: 500; }
 
-  .helper-text{ font-size:12px; color:var(--ink-45); margin-top:14px; line-height:1.5; }
-
-  /* ---------- Modal ---------- */
-  .overlay{ position:fixed; inset:0; background:rgba(0,0,0,.5); backdrop-filter:blur(2px); display:none; align-items:center; justify-content:center; z-index:500; padding:20px; }
-  .overlay.show{ display:flex; }
-  .modal{ background:var(--white); border-radius:16px; width:100%; max-width:440px; padding:26px 26px 22px; box-shadow:0 20px 60px rgba(0,0,0,.35); max-height:88vh; overflow-y:auto; position:relative; }
-  .modal h3{ font-size:18px; margin-bottom:4px; }
-  .modal .modal-sub{ font-size:12.5px; color:var(--ink-45); margin-bottom:18px; font-weight:600; }
-  .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:12px; font-weight:700; margin-bottom:6px; color:var(--ink-70); text-transform:uppercase; letter-spacing:.04em; }
-  .field input,.field textarea,.field select{ width:100%; border:1px solid var(--line); border-radius:9px; padding:10px 12px; font-family:'Montserrat',sans-serif; font-size:14px; background:var(--paper); }
-  .field input:focus,.field textarea:focus,.field select:focus{ outline:2px solid var(--black); outline-offset:1px; }
-  .field textarea{ resize:vertical; min-height:56px; }
-  .swatches{ display:flex; gap:8px; flex-wrap:wrap; }
-  .swatch{ width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
-  .swatch.selected{ border-color:var(--black); }
-  .modal-actions{ display:flex; gap:10px; margin-top:18px; }
-  .modal-actions .btn{ flex:1; justify-content:center; }
-  .modal-close{ position:absolute; top:14px; right:16px; background:none; border:none; font-size:20px; cursor:pointer; color:var(--ink-45); }
-
-  footer{ text-align:center; padding:30px 20px 40px; font-size:12px; color:var(--ink-45); font-weight:600; }
-  footer .fine{ margin-top:6px; color:rgba(0,0,0,.3); font-weight:500; }
-
-  @media(max-width:520px){
-    .marquee-top{ align-items:flex-start; }
-    .admin-toggle span.label{ display:none; }
-    .tab-btn{ padding:12px 14px; font-size:12px; }
+  @media (max-width: 480px) {
+    .admin-toggle .label { display: none; }
+    #home { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -188,13 +181,13 @@
   <div class="panel right"></div>
 </div>
 
-<header class="marquee">
-  <div class="marquee-top">
-    <div class="brand-lockup">
+<header>
+  <div class="header-top">
+    <div class="brand">
       <div class="brand-mark">B</div>
       <div>
-        <div class="word">BROADWAY</div>
-        <div class="sub">Command Center</div>
+        <div class="brand-name">BROADWAY</div>
+        <div class="brand-sub">Command Center</div>
       </div>
     </div>
     <button class="admin-toggle" id="adminToggle" type="button">
@@ -202,96 +195,52 @@
       <span class="label">Admin mode</span>
     </button>
   </div>
-  <div class="eyebrow" style="margin-top:20px;">Internal Tools</div>
-  <h1 class="title">Every dashboard,<br/>one stage.</h1>
-  <p class="tagline">The live list of tools running operations across Hyderabad, Delhi and Pune.</p>
+  <div class="header-eyebrow" style="margin-top:20px;">Internal Tools</div>
+  <h1 class="header-title">Every dashboard,<br/>one stage.</h1>
+  <p class="header-sub">Pick your team to get started.</p>
   <div class="rainbow"></div>
 </header>
 
-<div class="tab-bar" id="tabBar">
-  <button class="tab-btn active" data-section="store" type="button">🏪 Store</button>
-  <button class="tab-btn" data-section="warehouse" type="button">📦 Warehouse</button>
-  <button class="tab-btn" data-section="central" type="button">🏢 Central Ops</button>
+<!-- Home: 3 boxes -->
+<div id="home"></div>
+
+<!-- Section view -->
+<div id="section-view">
+  <button class="back-btn" id="backBtn" type="button">← Back</button>
+  <div class="section-head">
+    <h2 id="sv-title"></h2>
+    <span class="count-pill" id="sv-count">0 live</span>
+  </div>
+  <div class="grid" id="sv-grid"></div>
+  <div class="util-bar">
+    <button class="btn btn-ghost" id="exportBtn" type="button">Export (JSON)</button>
+  </div>
+  <p class="helper-text" id="adminHint" style="display:none;">Changes save instantly for everyone on this page.</p>
 </div>
 
-<main>
-  <!-- Store -->
-  <div class="section-panel active" id="panel-store">
-    <div class="section-head">
-      <h2>Store tools</h2>
-      <span class="count-pill" id="count-store">0 live</span>
-    </div>
-    <div class="grid" id="grid-store"></div>
-    <div class="util-bar" id="util-store">
-      <button class="btn btn-ghost" data-export="store" type="button">Export (JSON)</button>
-      <button class="btn btn-ghost btn-danger" data-reset="store" type="button">Restore defaults</button>
-    </div>
-  </div>
-
-  <!-- Warehouse -->
-  <div class="section-panel" id="panel-warehouse">
-    <div class="section-head">
-      <h2>Warehouse tools</h2>
-      <span class="count-pill" id="count-warehouse">0 live</span>
-    </div>
-    <div class="grid" id="grid-warehouse"></div>
-    <div class="util-bar" id="util-warehouse">
-      <button class="btn btn-ghost" data-export="warehouse" type="button">Export (JSON)</button>
-    </div>
-  </div>
-
-  <!-- Central Ops -->
-  <div class="section-panel" id="panel-central">
-    <div class="section-head">
-      <h2>Central Ops tools</h2>
-      <span class="count-pill" id="count-central">0 live</span>
-    </div>
-    <div class="grid" id="grid-central"></div>
-    <div class="util-bar" id="util-central">
-      <button class="btn btn-ghost" data-export="central" type="button">Export (JSON)</button>
-    </div>
-  </div>
-
-  <p class="helper-text" id="adminHint" style="display:none;">
-    Changes save to the shared list — everyone sees your additions and edits immediately.
-  </p>
-</main>
-
 <footer>
-  Broadway Command Center &middot; Internal tools directory
+  Broadway Command Center · Internal tools directory
   <div class="fine">Built for Hyderabad · Delhi · Pune teams</div>
 </footer>
 
-<!-- Add / Edit Modal -->
+<!-- Modal -->
 <div class="overlay" id="overlay">
   <div class="modal">
     <button class="modal-close" id="modalClose" type="button">&times;</button>
-    <h3 id="modalTitle">Add a dashboard</h3>
-    <div class="modal-sub">It'll appear on the board for everyone.</div>
-    <div class="field">
-      <label for="fTitle">Name</label>
-      <input id="fTitle" type="text" placeholder="e.g. Returns Tracker" />
-    </div>
-    <div class="field">
-      <label for="fUrl">Link</label>
-      <input id="fUrl" type="url" placeholder="https://" />
-    </div>
-    <div class="field">
-      <label for="fDesc">Short description</label>
-      <textarea id="fDesc" placeholder="What does this tool do?"></textarea>
-    </div>
+    <h3 id="modalTitle">Add a tool</h3>
+    <div class="modal-sub">Appears on the board for everyone.</div>
+    <div class="field"><label for="fTitle">Name</label><input id="fTitle" type="text" placeholder="e.g. Returns Tracker" /></div>
+    <div class="field"><label for="fUrl">Link</label><input id="fUrl" type="url" placeholder="https://" /></div>
+    <div class="field"><label for="fDesc">Description</label><textarea id="fDesc" placeholder="What does this tool do?"></textarea></div>
     <div class="field">
       <label for="fSection">Section</label>
       <select id="fSection">
-        <option value="store">Store</option>
-        <option value="warehouse">Warehouse</option>
-        <option value="central">Central Ops</option>
+        <option value="store">🏪 Store</option>
+        <option value="warehouse">📦 Warehouse</option>
+        <option value="central">🏢 Central Ops</option>
       </select>
     </div>
-    <div class="field">
-      <label>Accent colour</label>
-      <div class="swatches" id="swatches"></div>
-    </div>
+    <div class="field"><label>Accent colour</label><div class="swatches" id="swatches"></div></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="cancelBtn" type="button">Cancel</button>
       <button class="btn btn-primary" id="saveBtn" type="button">Save</button>
@@ -303,254 +252,217 @@
 const COLOR_MAP = { amber:"#F5A61F", pink:"#EB92AA", sky:"#75CFE7", mint:"#B8E0CB", yellow:"#F0E071", lavender:"#B091C3" };
 const COLOR_ORDER = ["amber","sky","pink","mint","yellow","lavender"];
 
-const DEFAULT_LINKS = [
-  { id:"incentive",      title:"Incentive",       url:"https://storeops.broadwaylive.in/",            description:"Store-level staff incentive and variable pay tracking.",           color:"amber",    section:"store",     locked:true },
-  { id:"stock-finder",   title:"Stock Finder",    url:"https://stock-finder-0fm2.onrender.com/",      description:"Barcode-based inventory lookup across Hyderabad, Delhi & Pune.",  color:"sky",      section:"store",     locked:true },
-  { id:"promo-dashboard",title:"Promo Dashboard", url:"https://promo-hub.onrender.com/",              description:"Live view of running promotions and offer performance.",           color:"pink",     section:"store",     locked:true },
-  { id:"floor-vm",       title:"Floor VM Dashboard", url:"https://criticalstock.vercel.app/",         description:"Visual merchandising and critical stock alerts by floor.",        color:"mint",     section:"store",     locked:true },
-  { id:"grn-tool",       title:"GRN Tool",        url:"https://broadway-grn-app.onrender.com/",       description:"Goods received note entry and warehouse inbound tracking.",       color:"lavender", section:"warehouse", locked:true },
-  { id:"rtv-tool",       title:"RTV Tool",        url:"https://rtv-desk.onrender.com/",               description:"Return to vendor desk — log and track outbound returns.",         color:"yellow",   section:"warehouse", locked:true },
-  { id:"auto-grn",       title:"Auto GRN Tool",   url:"https://po-mailer.onrender.com/grn.html",      description:"Automated GRN generation from PO data for central operations.",   color:"amber",    section:"central",   locked:true }
-];
+const SECTIONS = {
+  store:     { label:"Store",      emoji:"🏪", desc:"Tools for in-store teams", accent:"#F5A61F" },
+  warehouse: { label:"Warehouse",  emoji:"📦", desc:"Inbound, outbound & returns", accent:"#75CFE7" },
+  central:   { label:"Central Ops",emoji:"🏢", desc:"Head office operations", accent:"#B091C3" }
+};
 
 let links = [];
+let currentSection = null;
 let editingId = null;
-let currentSection = "store";
 let adminPasscode = null;
 
-/* ---------- API ---------- */
+/* --- API --- */
 async function apiGetLinks(){
-  const res = await fetch("/api/links");
-  const data = await res.json();
-  if(!res.ok) throw new Error(data.error || "Couldn't load the link list.");
-  return data.links;
+  const r = await fetch("/api/links");
+  const d = await r.json();
+  if(!r.ok) throw new Error(d.error||"Load failed");
+  return d.links;
 }
-async function apiVerifyPasscode(passcode){
-  const res = await fetch("/api/admin/verify",{ method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({passcode}) });
-  return res.ok;
+async function apiVerifyPasscode(p){
+  const r = await fetch("/api/admin/verify",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({passcode:p})});
+  return r.ok;
 }
-async function apiWrite(url, method, body){
-  const res = await fetch(url,{
-    method,
-    headers:{"Content-Type":"application/json","x-admin-passcode":adminPasscode||""},
-    body: body ? JSON.stringify(body) : undefined
+async function apiWrite(url,method,body){
+  const r = await fetch(url,{method,headers:{"Content-Type":"application/json","x-admin-passcode":adminPasscode||""},body:body?JSON.stringify(body):undefined});
+  const d = await r.json().catch(()=>({}));
+  if(!r.ok){ if(r.status===401){setAdmin(false);adminPasscode=null;} throw new Error(d.error||`Error ${r.status}`); }
+  return d;
+}
+
+function esc(s){ return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+function host(u){ try{return new URL(u).host;}catch(e){return u;} }
+function sectionOf(l){ return l.section||"store"; }
+
+/* --- Home boxes --- */
+function renderHome(){
+  const home = document.getElementById("home");
+  home.innerHTML = "";
+  Object.entries(SECTIONS).forEach(([key,sec])=>{
+    const count = links.filter(l=>sectionOf(l)===key).length;
+    const box = document.createElement("div");
+    box.className = "section-box";
+    box.style.setProperty("--accent", sec.accent);
+    box.innerHTML = `
+      <div class="box-emoji">${sec.emoji}</div>
+      <div class="box-name">${sec.label}</div>
+      <div class="box-desc">${sec.desc}</div>
+      <div class="box-count">${count} tool${count!==1?"s":""}</div>
+      <div class="box-arrow">→</div>`;
+    box.addEventListener("click", ()=> openSection(key));
+    home.appendChild(box);
   });
-  const data = await res.json().catch(()=>({}));
-  if(!res.ok){
-    if(res.status===401){ setAdmin(false); adminPasscode=null; }
-    throw new Error(data.error || `Request failed (${res.status})`);
-  }
-  return data;
 }
 
-/* ---------- Render ---------- */
-function hostFromUrl(u){ try{ return new URL(u).host; }catch(e){ return u; } }
-function esc(str){ return String(str).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m])); }
+/* --- Section view --- */
+function openSection(key){
+  currentSection = key;
+  const sec = SECTIONS[key];
+  const secLinks = links.filter(l=>sectionOf(l)===key);
 
-function render(){
-  const sections = ["store","warehouse","central"];
-  sections.forEach(sec => {
-    const secLinks = links.filter(l => (l.section||"store") === sec);
-    const grid = document.getElementById("grid-"+sec);
-    grid.innerHTML = "";
+  document.getElementById("home").style.display = "none";
+  const sv = document.getElementById("section-view");
+  sv.classList.add("active");
+  document.getElementById("sv-title").textContent = sec.emoji+" "+sec.label;
+  document.getElementById("sv-count").textContent = secLinks.length+" live";
 
-    secLinks.forEach(link => {
-      const card = document.createElement("div");
-      card.className = "card";
-      card.style.setProperty("--accent", COLOR_MAP[link.color]||COLOR_MAP.amber);
-      card.innerHTML = `
-        <div class="stub"></div>
-        <div class="card-top">
-          <h3>${esc(link.title)}</h3>
-          ${link.locked?'':'<span class="badge">Custom</span>'}
+  const grid = document.getElementById("sv-grid");
+  grid.innerHTML = "";
+
+  secLinks.forEach(link=>{
+    const card = document.createElement("div");
+    card.className = "card";
+    card.style.setProperty("--accent", COLOR_MAP[link.color]||COLOR_MAP.amber);
+    card.innerHTML = `
+      <div class="stub"></div>
+      <div class="card-top"><h3>${esc(link.title)}</h3></div>
+      <p class="desc">${esc(link.description||"")}</p>
+      <div class="meta"><span class="dot-accent"></span>${esc(host(link.url))}</div>
+      <div class="card-actions">
+        <a class="btn btn-primary" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">Open ↗</a>
+        <div class="admin-row">
+          <button class="btn btn-ghost" data-edit="${link.id}" type="button">Edit</button>
+          ${link.locked?"":`<button class="btn btn-ghost btn-danger" data-delete="${link.id}" type="button">Delete</button>`}
         </div>
-        <p class="desc">${esc(link.description||"")}</p>
-        <div class="meta"><span class="dot-accent"></span>${esc(hostFromUrl(link.url))}</div>
-        <div class="card-actions">
-          <a class="btn btn-primary" href="${esc(link.url)}" target="_blank" rel="noopener noreferrer">Open dashboard ↗</a>
-          <div class="admin-row">
-            <button class="btn btn-ghost" data-edit="${link.id}" type="button">Edit</button>
-            ${link.locked?'':`<button class="btn btn-ghost btn-danger" data-delete="${link.id}" type="button">Delete</button>`}
-          </div>
-        </div>`;
-      grid.appendChild(card);
-    });
-
-    // Add tile
-    const addTile = document.createElement("div");
-    addTile.className = "add-tile";
-    addTile.dataset.addsection = sec;
-    addTile.innerHTML = `<span class="plus">+</span><span>Add a tool</span>`;
-    grid.appendChild(addTile);
-
-    document.getElementById("count-"+sec).textContent = `${secLinks.length} live`;
+      </div>`;
+    grid.appendChild(card);
   });
 
-  // Bind events
-  document.querySelectorAll("[data-edit]").forEach(btn => btn.addEventListener("click", ()=> openModal(btn.getAttribute("data-edit"))));
-  document.querySelectorAll("[data-delete]").forEach(btn => btn.addEventListener("click", ()=> deleteLink(btn.getAttribute("data-delete"))));
-  document.querySelectorAll("[data-addsection]").forEach(tile => tile.addEventListener("click", ()=> openModal(null, tile.dataset.addsection)));
+  const addTile = document.createElement("div");
+  addTile.className = "add-tile";
+  addTile.innerHTML = `<span class="plus">+</span><span>Add a tool</span>`;
+  addTile.addEventListener("click",()=>openModal(null));
+  grid.appendChild(addTile);
+
+  grid.querySelectorAll("[data-edit]").forEach(b=>b.addEventListener("click",()=>openModal(b.dataset.edit)));
+  grid.querySelectorAll("[data-delete]").forEach(b=>b.addEventListener("click",()=>deleteLink(b.dataset.delete)));
 }
 
-async function refreshFromServer(){
+function goHome(){
+  currentSection = null;
+  document.getElementById("home").style.display = "";
+  document.getElementById("section-view").classList.remove("active");
+}
+
+document.getElementById("backBtn").addEventListener("click", goHome);
+
+/* --- Refresh --- */
+async function refresh(){
   try{
     links = await apiGetLinks();
-    // If server returns old format without section, assign defaults
-    links = links.map(l => {
-      if(!l.section){
-        const defaults = DEFAULT_LINKS.find(d=>d.id===l.id);
-        return {...l, section: defaults ? defaults.section : "store"};
-      }
-      return l;
-    });
-    render();
+    links = links.map(l=>({ ...l, section: l.section || (
+      ["incentive","stock-finder","promo-dashboard","daily-vm-sync","floor-vm"].includes(l.id)?"store":
+      ["grn-tool","rtv-tool"].includes(l.id)?"warehouse":"central"
+    )}));
+    renderHome();
+    if(currentSection) openSection(currentSection);
   }catch(e){
-    ["store","warehouse","central"].forEach(s => {
-      document.getElementById("grid-"+s).innerHTML = `<p style="color:#b23;font-weight:600;">Couldn't load: ${esc(e.message)}</p>`;
-    });
+    document.getElementById("home").innerHTML=`<p style="color:#b23;padding:2rem;font-weight:600;">Couldn't load tools: ${esc(e.message)}</p>`;
   }
 }
 
+/* --- Delete --- */
 async function deleteLink(id){
-  const link = links.find(l=>l.id===id);
-  if(!link) return;
-  if(!confirm(`Remove "${link.title}" for everyone?`)) return;
-  try{
-    const data = await apiWrite(`/api/links/${encodeURIComponent(id)}`, "DELETE");
-    links = data.links;
-    render();
-  }catch(e){ alert(e.message); }
+  const l = links.find(x=>x.id===id); if(!l) return;
+  if(!confirm(`Remove "${l.title}" for everyone?`)) return;
+  try{ const d=await apiWrite(`/api/links/${encodeURIComponent(id)}`,"DELETE"); links=d.links; renderHome(); openSection(currentSection); }
+  catch(e){ alert(e.message); }
 }
 
-/* ---------- Tabs ---------- */
-document.getElementById("tabBar").addEventListener("click", e => {
-  const btn = e.target.closest(".tab-btn");
-  if(!btn) return;
-  currentSection = btn.dataset.section;
-  document.querySelectorAll(".tab-btn").forEach(b => b.classList.toggle("active", b===btn));
-  document.querySelectorAll(".section-panel").forEach(p => p.classList.toggle("active", p.id==="panel-"+currentSection));
-});
-
-/* ---------- Modal ---------- */
+/* --- Modal --- */
 const overlay = document.getElementById("overlay");
 const swatchesEl = document.getElementById("swatches");
 
-function buildSwatches(selected){
-  swatchesEl.innerHTML = "";
-  COLOR_ORDER.forEach(name=>{
-    const sw = document.createElement("div");
-    sw.className = "swatch"+(name===selected?" selected":"");
-    sw.style.background = COLOR_MAP[name];
-    sw.dataset.color = name;
-    sw.addEventListener("click", ()=>{
-      swatchesEl.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected"));
-      sw.classList.add("selected");
-    });
+function buildSwatches(sel){
+  swatchesEl.innerHTML="";
+  COLOR_ORDER.forEach(n=>{
+    const sw=document.createElement("div");
+    sw.className="swatch"+(n===sel?" selected":"");
+    sw.style.background=COLOR_MAP[n]; sw.dataset.color=n;
+    sw.addEventListener("click",()=>{ swatchesEl.querySelectorAll(".swatch").forEach(s=>s.classList.remove("selected")); sw.classList.add("selected"); });
     swatchesEl.appendChild(sw);
   });
 }
+function nextColor(){ const used=links.map(l=>l.color); return COLOR_ORDER.find(c=>!used.includes(c))||COLOR_ORDER[links.length%COLOR_ORDER.length]; }
 
-function nextAutoColor(){
-  const used = links.map(l=>l.color);
-  return COLOR_ORDER.find(c=>!used.includes(c)) || COLOR_ORDER[links.length%COLOR_ORDER.length];
-}
-
-function openModal(id, section){
-  editingId = id;
-  const link = id ? links.find(l=>l.id===id) : null;
-  document.getElementById("modalTitle").textContent = link ? "Edit tool" : "Add a tool";
-  document.getElementById("fTitle").value = link ? link.title : "";
-  document.getElementById("fUrl").value = link ? link.url : "";
-  document.getElementById("fDesc").value = link ? (link.description||"") : "";
-  document.getElementById("fSection").value = link ? (link.section||"store") : (section||currentSection);
-  buildSwatches(link ? link.color : nextAutoColor());
+function openModal(id){
+  editingId=id;
+  const link=id?links.find(l=>l.id===id):null;
+  document.getElementById("modalTitle").textContent=link?"Edit tool":"Add a tool";
+  document.getElementById("fTitle").value=link?link.title:"";
+  document.getElementById("fUrl").value=link?link.url:"";
+  document.getElementById("fDesc").value=link?(link.description||""):"";
+  document.getElementById("fSection").value=link?(link.section||"store"):(currentSection||"store");
+  buildSwatches(link?link.color:nextColor());
   overlay.classList.add("show");
   document.getElementById("fTitle").focus();
 }
 function closeModal(){ overlay.classList.remove("show"); editingId=null; }
-document.getElementById("modalClose").addEventListener("click", closeModal);
-document.getElementById("cancelBtn").addEventListener("click", closeModal);
-overlay.addEventListener("click", e=>{ if(e.target===overlay) closeModal(); });
+document.getElementById("modalClose").addEventListener("click",closeModal);
+document.getElementById("cancelBtn").addEventListener("click",closeModal);
+overlay.addEventListener("click",e=>{ if(e.target===overlay) closeModal(); });
 
 document.getElementById("saveBtn").addEventListener("click", async ()=>{
-  const title = document.getElementById("fTitle").value.trim();
-  const url = document.getElementById("fUrl").value.trim();
-  const description = document.getElementById("fDesc").value.trim();
-  const section = document.getElementById("fSection").value;
-  const color = swatchesEl.querySelector(".swatch.selected")?.dataset.color || "amber";
-
-  if(!title||!url){ alert("Name and link are both required."); return; }
-  try{ new URL(url); }catch(e){ alert("Include https:// in the URL."); return; }
-
-  const saveBtn = document.getElementById("saveBtn");
-  saveBtn.disabled=true; saveBtn.textContent="Saving…";
+  const title=document.getElementById("fTitle").value.trim();
+  const url=document.getElementById("fUrl").value.trim();
+  const description=document.getElementById("fDesc").value.trim();
+  const section=document.getElementById("fSection").value;
+  const color=swatchesEl.querySelector(".swatch.selected")?.dataset.color||"amber";
+  if(!title||!url){alert("Name and link are required.");return;}
+  try{new URL(url);}catch(e){alert("Include https:// in the URL.");return;}
+  const btn=document.getElementById("saveBtn");
+  btn.disabled=true; btn.textContent="Saving…";
   try{
-    let data;
-    if(editingId){
-      data = await apiWrite(`/api/links/${encodeURIComponent(editingId)}`, "PUT", {title,url,description,color,section});
-    }else{
-      data = await apiWrite("/api/links", "POST", {title,url,description,color,section});
-    }
-    links = data.links;
-    render();
-    closeModal();
-    // Switch to the saved section
-    const btn = document.querySelector(`.tab-btn[data-section="${section}"]`);
-    if(btn) btn.click();
-  }catch(e){ alert(e.message); }
-  finally{ saveBtn.disabled=false; saveBtn.textContent="Save"; }
+    let d;
+    if(editingId){ d=await apiWrite(`/api/links/${encodeURIComponent(editingId)}`,"PUT",{title,url,description,color,section}); }
+    else{ d=await apiWrite("/api/links","POST",{title,url,description,color,section}); }
+    links=d.links; renderHome(); closeModal();
+    openSection(section);
+  }catch(e){alert(e.message);}
+  finally{btn.disabled=false;btn.textContent="Save";}
 });
 
-/* ---------- Admin toggle ---------- */
-const adminToggle = document.getElementById("adminToggle");
+/* --- Admin --- */
+const adminToggle=document.getElementById("adminToggle");
 function setAdmin(on){
   document.body.classList.toggle("admin-on",on);
   adminToggle.classList.toggle("on",on);
-  document.getElementById("adminHint").style.display = on?"block":"none";
+  document.getElementById("adminHint").style.display=on?"block":"none";
 }
-adminToggle.addEventListener("click", async ()=>{
-  if(document.body.classList.contains("admin-on")){ setAdmin(false); adminPasscode=null; return; }
-  const attempt = prompt("Enter admin passcode:");
-  if(attempt===null) return;
-  const ok = await apiVerifyPasscode(attempt);
-  if(ok){ adminPasscode=attempt; setAdmin(true); }
-  else{ alert("That passcode didn't match."); }
+adminToggle.addEventListener("click",async ()=>{
+  if(document.body.classList.contains("admin-on")){setAdmin(false);adminPasscode=null;return;}
+  const a=prompt("Enter admin passcode:"); if(a===null)return;
+  const ok=await apiVerifyPasscode(a);
+  if(ok){adminPasscode=a;setAdmin(true);}else{alert("Passcode didn't match.");}
 });
 
-/* ---------- Export buttons ---------- */
-document.querySelectorAll("[data-export]").forEach(btn=>{
-  btn.addEventListener("click", async ()=>{
-    const sec = btn.dataset.export;
-    const secLinks = links.filter(l=>(l.section||"store")===sec);
-    const json = JSON.stringify(secLinks,null,2);
-    try{ await navigator.clipboard.writeText(json); alert("Copied to clipboard."); }
-    catch(e){ prompt("Copy this JSON:", json); }
-  });
+document.getElementById("exportBtn").addEventListener("click",async ()=>{
+  const j=JSON.stringify(links.filter(l=>sectionOf(l)===currentSection),null,2);
+  try{await navigator.clipboard.writeText(j);alert("Copied to clipboard.");}
+  catch(e){prompt("Copy this:",j);}
 });
 
-document.querySelectorAll("[data-reset]").forEach(btn=>{
-  btn.addEventListener("click", async ()=>{
-    if(!confirm("Restore default store links for everyone?")) return;
-    const storeDefaults = DEFAULT_LINKS.filter(l=>l.section==="store");
-    const others = links.filter(l=>(l.section||"store")!=="store");
-    const next = [...others, ...storeDefaults];
-    try{
-      const data = await apiWrite("/api/links","PUT",{links:next});
-      links=data.links; render();
-    }catch(e){ alert(e.message); }
-  });
-});
-
-/* ---------- Curtain ---------- */
+/* --- Curtain --- */
 window.addEventListener("load",()=>{
-  const curtain = document.getElementById("curtain");
+  const c=document.getElementById("curtain");
   requestAnimationFrame(()=>{
-    setTimeout(()=>curtain.classList.add("open"),250);
-    setTimeout(()=>curtain.remove(),1300);
+    setTimeout(()=>c.classList.add("open"),250);
+    setTimeout(()=>c.remove(),1300);
   });
 });
 
-refreshFromServer();
+refresh();
 </script>
 </body>
 </html>
